@@ -1,0 +1,4 @@
+interface:
+  display_name: "Build Context Graph"
+  short_description: "Bootstrap repo engineering memory"
+  default_prompt: "Use $build-context-graph to set up repo-local engineering memory for this repository."
