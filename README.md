@@ -66,7 +66,14 @@ Run a syntax check after changing Python scripts:
 python -m py_compile \
   scripts/bootstrap_repo_memory.py \
   scripts/evaluate_retrieval_benchmark.py \
-  scripts/templates/repo_memory/*.py
+  scripts/templates/repo_memory/*.py \
+  tests/test_repo_memory_toolkit.py
+```
+
+Run the reusable toolkit tests:
+
+```bash
+uvx pytest -q tests/test_repo_memory_toolkit.py
 ```
 
 Smoke-install into a temporary repository when changing the installer or
