@@ -152,8 +152,8 @@ python -m scripts.repo_memory.backfill_git --repo-root . --limit 50
 - `scripts/evaluate_retrieval_benchmark.py`: compare baseline trace-only
   retrieval against the proposed trace+policy workflow.
 - `scripts/templates/repo_memory/`: templates copied into the target repo.
-- `scripts/templates/repo_memory/shadow_mode.py`: compare baseline and
-  proposed retrieval and append a JSONL shadow-mode record.
+- `scripts/templates/repo_memory/shadow_mode.py`: record retrieval diagnostics
+  and append a JSONL shadow-mode record.
 - `references/bootstrap-checklist.md`: rollout sequence and validation bar.
 - `references/adoption-gates.md`: success criteria for shadow mode and cutover.
 - `references/retrieval-benchmark-format.md`: benchmark file structure and

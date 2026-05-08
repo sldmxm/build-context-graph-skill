@@ -27,14 +27,14 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument('--limit', type=int, default=5)
     parser.add_argument(
         '--decision',
-        choices=('proposed', 'baseline', 'fallback', 'tie', 'undecided'),
+        choices=('proposed', 'undecided'),
         default='undecided',
-        help='Which retrieval path looked most useful for this task.',
+        help='Whether proposed retrieval looked useful for this task.',
     )
     parser.add_argument(
         '--notes',
         default='',
-        help='Optional one-line note about misses or why fallback was needed.',
+        help='Optional one-line note about misses or retrieval quality.',
     )
     parser.add_argument(
         '--no-log',
@@ -51,47 +51,6 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     if args.limit <= 0:
         raise ValueError('--limit must be > 0')
     return args
-
-
-def _rank_baseline_traces(
-    *,
-    repo_root: Path,
-    query: str,
-    query_paths: list[str],
-    limit: int,
-) -> list[dict[str, Any]]:
-    try:
-        from scripts.agent_memory.shared import (
-            load_trace_document as load_baseline_trace_document,
-        )
-        from scripts.agent_memory.shared import (
-            rank_trace_documents as rank_baseline_trace_documents,
-        )
-        from scripts.agent_memory.shared import (
-            traces_root as baseline_traces_root,
-        )
-    except ModuleNotFoundError:
-        return []
-
-    documents = [
-        load_baseline_trace_document(path)
-        for path in sorted(baseline_traces_root(repo_root).glob('*.md'))
-    ]
-    ranked = rank_baseline_trace_documents(
-        documents=documents,
-        query=query,
-        query_paths=query_paths,
-        limit=limit,
-    )
-    return [
-        {
-            'trace_id': item.document.metadata['trace_id'],
-            'score': item.score,
-            'path': str(item.document.path),
-            'title': item.document.title,
-        }
-        for item in ranked
-    ]
 
 
 def _rank_proposed_traces(
@@ -132,12 +91,6 @@ def build_shadow_report(
     decision: str,
     notes: str,
 ) -> dict[str, Any]:
-    baseline_traces = _rank_baseline_traces(
-        repo_root=repo_root,
-        query=query,
-        query_paths=query_paths,
-        limit=limit,
-    )
     proposed_traces = _rank_proposed_traces(
         repo_root=repo_root,
         query=query,
@@ -158,8 +111,8 @@ def build_shadow_report(
         'decision': decision,
         'notes': notes,
         'baseline': {
-            'top_trace_ids': [item['trace_id'] for item in baseline_traces],
-            'results': baseline_traces,
+            'top_trace_ids': [],
+            'results': [],
         },
         'proposed': {
             'top_trace_ids': [item['trace_id'] for item in proposed_traces],
