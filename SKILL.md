@@ -1,6 +1,6 @@
 ---
 name: build-context-graph
-description: Bootstrap or upgrade a repo-local engineering memory system built around `.agents/context-graph` and `scripts/repo_memory`. Use when Codex needs to set up searchable decision traces, durable repository policies, memory-aware retrieval workflow in `AGENTS.md`, git-history backfill, or policy-promotion tooling in a repository that lacks a strong memory layer or has an ad hoc one.
+description: Bootstrap or upgrade a repo-local engineering memory system built around `.agents/context-graph` and `.agents/context-graph/tools/repo_memory`. Use when Codex needs to set up searchable decision traces, durable repository policies, memory-aware retrieval workflow in `AGENTS.md`, git-history backfill, or policy-promotion tooling in a repository that lacks a strong memory layer or has an ad hoc one.
 ---
 
 # Build Context Graph
@@ -8,9 +8,10 @@ description: Bootstrap or upgrade a repo-local engineering memory system built a
 Install a lightweight repo-local memory system for engineering decisions, then
 use it to keep durable rules and high-signal task traces discoverable.
 
-After bootstrap, prefer the repo-local toolkit under `scripts/repo_memory/`
-over the skill's own bootstrap script. The skill is for installation and
-migration; the repo-local toolkit is for daily operation.
+After bootstrap, prefer the repo-local toolkit under
+`.agents/context-graph/tools/repo_memory/` over the skill's own bootstrap
+script. The skill is for installation and migration; the repo-local toolkit is
+for daily operation.
 
 ## Workflow
 
@@ -31,19 +32,20 @@ python /path/to/build-context-graph/scripts/bootstrap_repo_memory.py \
   --repo-root /path/to/repo
 ```
 
-This installs a repo-local toolkit under `scripts/repo_memory/` and creates the
+This installs a repo-local toolkit under
+`.agents/context-graph/tools/repo_memory/` and creates the
 `.agents/context-graph/` scaffold.
 
-If the repo already has `scripts/repo_memory/`, rerun with `--force` only after
-reviewing local edits. The installer is intentionally additive: it should not
-delete existing traces or policies.
+If the repo already has `.agents/context-graph/tools/repo_memory/`, rerun with
+`--force` only after reviewing local edits. The installer is intentionally
+additive: it should not delete existing traces or policies.
 
 ### 3. Audit the repository for seed material
 
 From the target repository root, run:
 
 ```bash
-python -m scripts.repo_memory.audit --repo-root .
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.audit --repo-root .
 ```
 
 Use the audit report to find:
@@ -70,7 +72,7 @@ when preparing cutover benchmarks.
 Example:
 
 ```bash
-python -m scripts.repo_memory.capture \
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.capture \
   --repo-root . \
   --trace-id 2026-04-21-example \
   --title "Document expand/contract rollout rule" \
@@ -90,7 +92,7 @@ python -m scripts.repo_memory.capture \
 When a trace or doc reveals a stable repository rule, create a policy:
 
 ```bash
-python -m scripts.repo_memory.promote_policy \
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.promote_policy \
   --repo-root . \
   --trace-id 2026-04-21-example \
   --policy-name expand_contract_migrations \
@@ -108,10 +110,10 @@ Add a short workflow that tells future agents to:
 
 1. Read `AGENTS.md`.
 2. For substantial tasks, start retrieval with
-   `python -m scripts.repo_memory.query --text ... --paths ... --include-policies`.
+   `PYTHONPATH=.agents/context-graph/tools python -m repo_memory.query --text ... --paths ... --include-policies`.
 3. Load at most five relevant traces or policies before reading source files.
 4. If retrieval looks weak or the task changes memory workflow behavior, run
-   `python -m scripts.repo_memory.shadow_mode --task-summary ... --query ... --paths ...`.
+   `PYTHONPATH=.agents/context-graph/tools python -m repo_memory.shadow_mode --task-summary ... --query ... --paths ...`.
 5. If a legacy workflow exists, keep it as a temporary fallback until shadow
    results justify removing it.
 6. Capture new traces after material changes.
@@ -122,15 +124,15 @@ Add a short workflow that tells future agents to:
 Run:
 
 ```bash
-python -m scripts.repo_memory.validate --repo-root .
-python -m scripts.repo_memory.query --repo-root . \
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.validate --repo-root .
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.query --repo-root . \
   --text "deploy migrations rollback" --paths AGENTS.md --include-policies
 ```
 
 If historical coverage matters, backfill selectively:
 
 ```bash
-python -m scripts.repo_memory.backfill_git --repo-root . --limit 50
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.backfill_git --repo-root . --limit 50
 ```
 
 ## Operating Rules
@@ -140,9 +142,9 @@ python -m scripts.repo_memory.backfill_git --repo-root . --limit 50
 - Keep policy text short, normative, and easy to reuse in reviews.
 - Do not treat the memory layer as a dumping ground for changelog entries.
 - Preserve local repo conventions when upgrading an existing setup.
-- Keep migrations reversible: add `scripts/repo_memory` before changing
-  `AGENTS.md`, and do not delete a legacy memory toolkit until the new workflow
-  has proven itself.
+- Keep migrations reversible: add `.agents/context-graph/tools/repo_memory`
+  before changing `AGENTS.md`, and do not delete a legacy memory toolkit until
+  the new workflow has proven itself.
 - Treat `shadow_mode` as a diagnostic or adoption gate. Day-to-day operation
   should use `repo_memory.query` directly once the repo trusts the toolkit.
 

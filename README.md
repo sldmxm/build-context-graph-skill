@@ -3,9 +3,9 @@
 Source repository for the `build-context-graph` Codex skill.
 
 The skill bootstraps or upgrades a repo-local engineering memory layer based on
-`.agents/context-graph` and `scripts/repo_memory`. After installation, agents
-should use the target repository's `scripts/repo_memory` toolkit for daily
-retrieval, validation, trace capture, and policy promotion.
+`.agents/context-graph` and `.agents/context-graph/tools/repo_memory`. After
+installation, agents should use the target repository's repo-local toolkit for
+daily retrieval, validation, trace capture, and policy promotion.
 
 ## Layout
 
@@ -47,8 +47,8 @@ Then validate from the target repository:
 
 ```bash
 cd /path/to/repo
-python -m scripts.repo_memory.validate --repo-root .
-python -m scripts.repo_memory.query \
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.validate --repo-root .
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.query \
   --text "repo memory smoke" \
   --paths AGENTS.md \
   --include-policies
@@ -78,7 +78,7 @@ git -C "$tmpdir" init -q
 python scripts/bootstrap_repo_memory.py --repo-root "$tmpdir"
 (
   cd "$tmpdir"
-  python -m scripts.repo_memory.validate --repo-root .
+  PYTHONPATH=.agents/context-graph/tools python -m repo_memory.validate --repo-root .
 )
 rm -rf "$tmpdir"
 ```

@@ -3,7 +3,7 @@ import json
 import re
 from pathlib import Path
 
-from scripts.repo_memory.shared import (
+from repo_memory.shared import (
     ensure_context_graph_scaffold,
     load_trace_document,
     policies_root,

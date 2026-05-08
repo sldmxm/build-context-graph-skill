@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import os
 import shutil
 import subprocess
 import sys
@@ -15,7 +16,7 @@ def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument('--repo-root', type=Path, required=True)
     parser.add_argument(
         '--toolkit-dir',
-        default='scripts/repo_memory',
+        default='.agents/context-graph/tools/repo_memory',
         help='Relative path inside the target repo for the installed toolkit.',
     )
     parser.add_argument(
@@ -41,16 +42,21 @@ def _copy_tree(source_root: Path, target_root: Path, *, force: bool) -> None:
     shutil.copytree(source_root, target_root)
 
 
-def _run_bootstrap(repo_root: Path) -> None:
+def _run_bootstrap(repo_root: Path, toolkit_dir: Path) -> None:
+    env = {
+        **dict(os.environ),
+        'PYTHONPATH': str((repo_root / toolkit_dir.parent).resolve()),
+    }
     subprocess.run(
         [
             sys.executable,
             '-m',
-            'scripts.repo_memory.bootstrap',
+            'repo_memory.bootstrap',
             '--repo-root',
             str(repo_root),
         ],
         cwd=repo_root,
+        env=env,
         check=True,
     )
 
@@ -59,17 +65,20 @@ def _agents_snippet() -> str:
     return (
         '1. Read AGENTS.md.\n'
         '2. For substantial tasks, start retrieval with '
-        '`python -m scripts.repo_memory.query --text ... --paths ... '
-        '--include-policies`.\n'
+        '`PYTHONPATH=.agents/context-graph/tools python -m '
+        'repo_memory.query --text ... --paths ... --include-policies`.\n'
         '3. Load at most five relevant traces or policies before reading '
         'source files.\n'
         '4. If retrieval looks weak or the task changes memory workflow '
-        'behavior, run `python -m scripts.repo_memory.shadow_mode '
-        '--task-summary ... --query ... --paths ...`.\n'
+        'behavior, run `PYTHONPATH=.agents/context-graph/tools python -m '
+        'repo_memory.shadow_mode --task-summary ... --query ... '
+        '--paths ...`.\n'
         '5. After material changes, capture a trace with '
-        '`python -m scripts.repo_memory.capture ...`.\n'
+        '`PYTHONPATH=.agents/context-graph/tools python -m '
+        'repo_memory.capture ...`.\n'
         '6. Promote stable rules with '
-        '`python -m scripts.repo_memory.promote_policy ...`.'
+        '`PYTHONPATH=.agents/context-graph/tools python -m '
+        'repo_memory.promote_policy ...`.'
     )
 
 
@@ -82,7 +91,7 @@ def main(argv: list[str] | None = None) -> int:
     target_root = repo_root / args.toolkit_dir
     target_root.parent.mkdir(parents=True, exist_ok=True)
     _copy_tree(_template_root(), target_root, force=args.force)
-    _run_bootstrap(repo_root)
+    _run_bootstrap(repo_root, Path(args.toolkit_dir))
 
     print(f'Installed repo_memory toolkit at {target_root}')
     print('\nSuggested AGENTS.md snippet:\n')

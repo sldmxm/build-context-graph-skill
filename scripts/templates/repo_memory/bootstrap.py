@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from scripts.repo_memory.shared import ensure_context_graph_scaffold
+from repo_memory.shared import ensure_context_graph_scaffold
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:

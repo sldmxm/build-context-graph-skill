@@ -11,13 +11,14 @@ Use this checklist when rolling the memory system into a repository.
 
 ## Phase 2: Install
 
-- Run the skill installer to copy `scripts/repo_memory/`.
+- Run the skill installer to copy
+  `.agents/context-graph/tools/repo_memory/`.
 - Bootstrap `.agents/context-graph/`.
 - Do not overwrite existing traces or policies without reading them first.
 
 ## Phase 3: Audit
 
-- Run `python -m scripts.repo_memory.audit --repo-root .`.
+- Run `PYTHONPATH=.agents/context-graph/tools python -m repo_memory.audit --repo-root .`.
 - Review `policy_candidates`.
 - Review `promotion_candidates`.
 - Decide which findings should become curated traces and which should become
@@ -32,14 +33,14 @@ Use this checklist when rolling the memory system into a repository.
 
 ## Phase 5: Validate
 
-- Run `python -m scripts.repo_memory.validate --repo-root .`.
+- Run `PYTHONPATH=.agents/context-graph/tools python -m repo_memory.validate --repo-root .`.
 - Run at least one query that should surface the new traces or policies.
 - Confirm the query results are useful before calling the rollout complete.
 
 ## Minimum Success Bar
 
 - The repo has `.agents/context-graph/` scaffolded.
-- The repo has `scripts/repo_memory/` installed.
+- The repo has `.agents/context-graph/tools/repo_memory/` installed.
 - `AGENTS.md` tells agents how to query the memory layer.
 - At least one curated trace exists for an active engineering decision.
 - At least one stable policy exists if the repo has clear long-lived rules.

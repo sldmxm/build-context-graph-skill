@@ -4,7 +4,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from scripts.repo_memory.shared import (
+from repo_memory.shared import (
     context_graph_root,
     load_trace_document,
     parse_csv_argument,

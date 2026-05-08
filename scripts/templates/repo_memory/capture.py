@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 
-from scripts.repo_memory.shared import (
+from repo_memory.shared import (
     current_head_sha,
     current_timestamp,
     discover_changed_paths,

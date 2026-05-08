@@ -4,7 +4,7 @@ import subprocess
 from dataclasses import dataclass
 from pathlib import Path
 
-from scripts.repo_memory.shared import (
+from repo_memory.shared import (
     LOW_SIGNAL_SUBJECTS,
     current_timestamp,
     ensure_context_graph_scaffold,

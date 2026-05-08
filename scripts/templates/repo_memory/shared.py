@@ -142,7 +142,7 @@ Do not copy one-off task traces into this directory until they become durable
 engineering policy.
 
 When a trace reveals a long-lived rule, promote it here with
-`python -m scripts.repo_memory.promote_policy ...`.
+`PYTHONPATH=.agents/context-graph/tools python -m repo_memory.promote_policy`.
 """
 
 

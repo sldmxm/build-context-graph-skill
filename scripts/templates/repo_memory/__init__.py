@@ -16,4 +16,4 @@ def __getattr__(name: str):
 
     import importlib
 
-    return importlib.import_module(f'scripts.repo_memory.{name}')
+    return importlib.import_module(f'repo_memory.{name}')

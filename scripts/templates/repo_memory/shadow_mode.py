@@ -3,8 +3,8 @@ import json
 from pathlib import Path
 from typing import Any
 
-from scripts.repo_memory.query import rank_policy_documents
-from scripts.repo_memory.shared import (
+from repo_memory.query import rank_policy_documents
+from repo_memory.shared import (
     current_timestamp,
     load_trace_document,
     parse_csv_argument,

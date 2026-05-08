@@ -3,7 +3,7 @@ import json
 import re
 from pathlib import Path
 
-from scripts.repo_memory.shared import (
+from repo_memory.shared import (
     context_graph_root,
     load_trace_document,
     policies_root,
@@ -181,14 +181,16 @@ def _agents_snippet() -> str:
     return (
         '1. Read AGENTS.md.\n'
         '2. Query `.agents/context-graph` with '
-        '`python -m scripts.repo_memory.query --text ... --paths ... '
-        '--include-policies`.\n'
+        '`PYTHONPATH=.agents/context-graph/tools python -m '
+        'repo_memory.query --text ... --paths ... --include-policies`.\n'
         '3. Load at most five relevant traces or policies.\n'
         '4. Only then open source files.\n'
         '5. After material changes, capture a trace with '
-        '`python -m scripts.repo_memory.capture ...`.\n'
+        '`PYTHONPATH=.agents/context-graph/tools python -m '
+        'repo_memory.capture ...`.\n'
         '6. If a rule is stable and repeatable, promote it with '
-        '`python -m scripts.repo_memory.promote_policy ...`.'
+        '`PYTHONPATH=.agents/context-graph/tools python -m '
+        'repo_memory.promote_policy ...`.'
     )
 
 

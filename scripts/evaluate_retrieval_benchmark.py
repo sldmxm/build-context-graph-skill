@@ -26,13 +26,25 @@ def _load_module(module_path: Path, module_name: str):
     return module
 
 
-def _load_agent_memory_shared(repo_root: Path):
-    module_path = repo_root / 'scripts' / 'agent_memory' / 'shared.py'
-    if not module_path.exists():
-        raise FileNotFoundError(
-            f'Baseline agent_memory shared module not found: {module_path}'
-        )
-    return _load_module(module_path, 'benchmark_agent_memory_shared')
+def _load_repo_memory_shared(repo_root: Path):
+    candidates = [
+        (
+            repo_root
+            / '.agents'
+            / 'context-graph'
+            / 'tools'
+            / 'repo_memory'
+            / 'shared.py'
+        ),
+        repo_root / 'scripts' / 'repo_memory' / 'shared.py',
+    ]
+    for module_path in candidates:
+        if module_path.exists():
+            return _load_module(module_path, 'benchmark_repo_memory_shared')
+    raise FileNotFoundError(
+        'Repo memory shared module not found in '
+        '.agents/context-graph/tools/repo_memory or scripts/repo_memory'
+    )
 
 
 def _load_proposed_shared():
@@ -303,7 +315,7 @@ def main(argv: list[str] | None = None) -> int:
     repo_root = args.repo_root.resolve()
     benchmark_path = args.benchmark.resolve()
     payload = json.loads(benchmark_path.read_text(encoding='utf-8'))
-    baseline_module = _load_agent_memory_shared(repo_root)
+    baseline_module = _load_repo_memory_shared(repo_root)
     proposed_module = _load_proposed_shared()
 
     cases = [
