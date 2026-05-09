@@ -9,11 +9,13 @@ sys.path.insert(0, str(TOOLKIT_ROOT))
 
 from repo_memory import query, shadow_mode  # noqa: E402
 from repo_memory.shared import (  # noqa: E402
+    TraceValidationError,
     ensure_context_graph_scaffold,
     format_trace_document,
     parse_csv_argument,
     parse_frontmatter,
     traces_root,
+    validate_trace_collection,
 )
 
 
@@ -237,3 +239,33 @@ def test_shadow_mode_writes_jsonl_log(tmp_path: Path):
         'results': [],
     }
     assert payload['proposed']['top_trace_ids'] == ['memory-layout']
+
+
+def test_validate_trace_collection_reports_broken_trace_path(
+    tmp_path: Path,
+):
+    trace_path = _write_trace(
+        tmp_path,
+        trace_id='broken-trace',
+        title='Broken trace',
+        paths=['AGENTS.md'],
+        tags=['memory'],
+        decision='This trace will be made invalid.',
+    )
+    trace_path.write_text(
+        trace_path.read_text(encoding='utf-8').replace(
+            '\n## Open Questions\nNone.\n',
+            '\n',
+        ),
+        encoding='utf-8',
+    )
+
+    try:
+        validate_trace_collection([trace_path], repo_root=tmp_path)
+    except TraceValidationError as exc:
+        message = str(exc)
+    else:
+        raise AssertionError('Expected TraceValidationError')
+
+    assert str(trace_path) in message
+    assert 'Missing or empty section: Open Questions' in message

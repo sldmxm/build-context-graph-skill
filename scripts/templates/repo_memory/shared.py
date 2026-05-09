@@ -410,7 +410,10 @@ def validate_trace_collection(
     documents: list[TraceDocument] = []
     seen_ids: dict[str, Path] = {}
     for path in trace_paths:
-        document = load_trace_document(path)
+        try:
+            document = load_trace_document(path)
+        except TraceValidationError as exc:
+            raise TraceValidationError(f'{path}: {exc}') from exc
         trace_id = str(document.metadata['trace_id'])
         if trace_id in seen_ids:
             raise TraceValidationError(
