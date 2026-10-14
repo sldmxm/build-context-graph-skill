@@ -1,13 +1,16 @@
 import json
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 TOOLKIT_ROOT = (
     Path(__file__).resolve().parents[1] / 'scripts' / 'templates'
 )
 sys.path.insert(0, str(TOOLKIT_ROOT))
 
-from repo_memory import query, shadow_mode  # noqa: E402
+from repo_memory import capture, query, review_changes, shadow_mode  # noqa: E402
 from repo_memory.shared import (  # noqa: E402
     TraceValidationError,
     ensure_context_graph_scaffold,
@@ -74,6 +77,75 @@ def test_query_args_accept_multiple_path_tokens():
     assert args.paths == ['apps/web', 'apps/mobile']
 
 
+def test_capture_rejects_empty_section_before_writing(tmp_path: Path):
+    argv = ['--repo-root', str(tmp_path), '--trace-id', 'empty-trace',
+            '--title', 'Empty trace', '--tags', 'memory', '--paths', 'app.py']
+    for flag in ('problem', 'decision', 'alternatives', 'constraints',
+                 'evidence', 'verification', 'outcome', 'open-questions'):
+        argv.extend([f'--{flag}', ' ' if flag == 'outcome' else 'Evidence.'])
+
+    with pytest.raises(TraceValidationError, match='Outcome'):
+        capture.main(argv)
+    assert not (traces_root(tmp_path) / 'empty-trace.md').exists()
+
+
+def _git(repo_root: Path, *args: str):
+    return subprocess.run(
+        ['git', *args], cwd=repo_root, check=True,
+        capture_output=True, text=True,
+    ).stdout
+
+
+def test_review_reports_index_error_after_worktree_repair(tmp_path: Path):
+    _git(tmp_path, 'init', '-q')
+    path = _write_trace(
+        tmp_path, trace_id='draft', title='Draft', paths=['app.py'],
+        tags=['memory'], decision='Use explicit validation.',
+    )
+    valid = path.read_text(encoding='utf-8')
+    path.write_text(valid.replace('\n## Open Questions\nNone.\n', '\n'),
+                    encoding='utf-8')
+    _git(tmp_path, 'add', str(path.relative_to(tmp_path)))
+    path.write_text(valid, encoding='utf-8')
+    index_before = _git(tmp_path, 'diff', '--cached')
+
+    report = review_changes.build_review_report(tmp_path)
+
+    assert report['errors'][0]['version'] == 'index'
+    assert report['traces'][0]['staged']
+    assert report['traces'][0]['unstaged']
+    assert path.read_text(encoding='utf-8') == valid
+    assert _git(tmp_path, 'diff', '--cached') == index_before
+
+
+def test_review_includes_committed_task_and_duplicate_candidate(tmp_path):
+    _git(tmp_path, 'init', '-q')
+    first = _write_trace(
+        tmp_path, trace_id='old', title='Earlier decision', paths=['app.py'],
+        tags=['memory'], decision='Use explicit validation.',
+    )
+    _git(tmp_path, 'add', '.')
+    _git(tmp_path, '-c', 'user.name=Test', '-c', 'user.email=test@test.invalid',
+         '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'Seed')
+    base = _git(tmp_path, 'rev-parse', 'HEAD').strip()
+    second = _write_trace(
+        tmp_path, trace_id='new', title='New draft', paths=['app.py'],
+        tags=['memory'], decision='Use explicit validation.',
+    )
+    _git(tmp_path, 'add', '.')
+    _git(tmp_path, '-c', 'user.name=Test', '-c', 'user.email=test@test.invalid',
+         '-c', 'core.hooksPath=/dev/null', 'commit', '-qm', 'Task')
+
+    report = review_changes.build_review_report(tmp_path, base)
+
+    assert report['errors'] == []
+    assert report['traces'][0]['path'] == str(second.relative_to(tmp_path))
+    assert report['traces'][0]['committed_since_base']
+    assert report['traces'][0]['same_decision_candidates'] == [
+        str(first.relative_to(tmp_path)),
+    ]
+
+
 def test_parse_csv_argument_accepts_common_path_forms():
     assert parse_csv_argument(
         ['apps/web', 'apps/mobile', 'packages/shared']
@@ -129,7 +201,7 @@ supersedes:
     assert body.startswith('# Prettier trace')
 
 
-def test_query_ranks_specific_trace_above_broad_trace(tmp_path: Path):
+def test_query_ranks_specific_trace_above_broad_trace(tmp_path: Path, capsys):
     _write_trace(
         tmp_path,
         trace_id='specific-auth-locale',
@@ -166,6 +238,9 @@ def test_query_ranks_specific_trace_above_broad_trace(tmp_path: Path):
     )
 
     assert exit_code == 0
+    assert json.loads(capsys.readouterr().out)['traces'][0]['trace_id'] == (
+        'specific-auth-locale'
+    )
 
 
 def test_ranker_prefers_path_and_query_specific_trace(tmp_path: Path):

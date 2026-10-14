@@ -1,4 +1,5 @@
 import argparse
+import sys
 from pathlib import Path
 
 from repo_memory.shared import (
@@ -9,6 +10,7 @@ from repo_memory.shared import (
     format_trace_document,
     parse_csv_argument,
     traces_root,
+    validate_trace_document,
 )
 
 
@@ -86,15 +88,19 @@ def main(argv: list[str] | None = None) -> int:
     if path.exists():
         raise FileExistsError(f'Trace already exists: {path}')
 
-    path.write_text(
-        format_trace_document(
-            metadata=metadata,
-            title=args.title,
-            sections=sections,
-        ),
-        encoding='utf-8',
+    content = format_trace_document(
+        metadata=metadata,
+        title=args.title,
+        sections=sections,
     )
+    validate_trace_document(content)
+    path.write_text(content, encoding='utf-8')
     print(path)
+    print(
+        'Review current-change traces before commit: '
+        'python -m repo_memory.review_changes (with the same PYTHONPATH).',
+        file=sys.stderr,
+    )
     return 0
 
 

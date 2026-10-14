@@ -190,7 +190,11 @@ def _agents_snippet() -> str:
         'repo_memory.capture ...`.\n'
         '6. If a rule is stable and repeatable, promote it with '
         '`PYTHONPATH=.agents/context-graph/tools python -m '
-        'repo_memory.promote_policy ...`.'
+        'repo_memory.promote_policy ...`.\n'
+        '7. After capture or review fixes and before commit, reconcile '
+        'current-task traces with `PYTHONPATH=.agents/context-graph/tools '
+        'python -m repo_memory.review_changes`, then validate. '
+        'Merge drafts for the same decision; supersede committed history.'
     )
 
 

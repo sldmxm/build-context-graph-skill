@@ -5,6 +5,7 @@ __all__ = [
     'capture',
     'promote_policy',
     'query',
+    'review_changes',
     'shadow_mode',
     'validate',
 ]

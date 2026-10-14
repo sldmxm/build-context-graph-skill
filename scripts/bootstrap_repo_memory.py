@@ -78,7 +78,13 @@ def _agents_snippet() -> str:
         'repo_memory.capture ...`.\n'
         '6. Promote stable rules with '
         '`PYTHONPATH=.agents/context-graph/tools python -m '
-        'repo_memory.promote_policy ...`.'
+        'repo_memory.promote_policy ...`.\n'
+        '7. After capture or review fixes and before commit, reconcile '
+        'current-task traces against the final diff with '
+        '`PYTHONPATH=.agents/context-graph/tools python -m '
+        'repo_memory.review_changes`, then run `repo_memory.validate` '
+        'with the same PYTHONPATH. Update or merge uncommitted drafts; '
+        'preserve committed history with explicit supersession.'
     )
 
 

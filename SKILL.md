@@ -1,6 +1,6 @@
 ---
 name: build-context-graph
-description: Bootstrap or upgrade a repo-local engineering memory system built around `.agents/context-graph` and `.agents/context-graph/tools/repo_memory`. Use when Codex needs to set up searchable decision traces, durable repository policies, memory-aware retrieval workflow in `AGENTS.md`, git-history backfill, or policy-promotion tooling in a repository that lacks a strong memory layer or has an ad hoc one.
+description: Set up, upgrade, or maintain repo-local engineering memory in `.agents/context-graph`. Use for decision traces, durable policies, retrieval workflows, and reconciling current-task traces after review or before commit.
 ---
 
 # Build Context Graph
@@ -10,8 +10,8 @@ use it to keep durable rules and high-signal task traces discoverable.
 
 After bootstrap, prefer the repo-local toolkit under
 `.agents/context-graph/tools/repo_memory/` over the skill's own bootstrap
-script. The skill is for installation and migration; the repo-local toolkit is
-for daily operation.
+script. Use the repo-local toolkit for daily operation. For review follow-ups
+or commit preparation, read [trace-maintenance.md](references/trace-maintenance.md).
 
 ## Workflow
 
@@ -68,6 +68,9 @@ when preparing cutover benchmarks.
 - Use `git_backfill` only as advisory history, not as durable policy.
 - Keep traces factual: problem, decision, alternatives, constraints, evidence,
   verification, outcome, open questions.
+- Before adding another trace, inspect the current task's traces. Update an
+  uncommitted trace when review changes the same decision; add a separate
+  trace only for an independently useful decision or a committed-history change.
 
 Example:
 
@@ -118,6 +121,10 @@ Add a short workflow that tells future agents to:
    results justify removing it.
 6. Capture new traces after material changes.
 7. Promote repeatable rules into `policies/`.
+8. After capture or review fixes and before commit, reconcile current-task
+   traces with the final diff using `repo_memory.review_changes`, then validate.
+   Carry this step into the repository's `AGENTS.md`; global instructions alone
+   do not update an existing repository workflow.
 
 ### 7. Validate before relying on it
 
@@ -141,6 +148,8 @@ PYTHONPATH=.agents/context-graph/tools python -m repo_memory.backfill_git --repo
 - Promote only durable, repeatable rules into `policies/`.
 - Keep policy text short, normative, and easy to reuse in reviews.
 - Do not treat the memory layer as a dumping ground for changelog entries.
+- Consolidate current-task drafts; preserve committed decision history with
+  explicit supersession. Do not delete traces solely for sharing paths or tags.
 - Preserve local repo conventions when upgrading an existing setup.
 - Keep migrations reversible: add `.agents/context-graph/tools/repo_memory`
   before changing `AGENTS.md`, and do not delete a legacy memory toolkit until
@@ -154,6 +163,10 @@ PYTHONPATH=.agents/context-graph/tools python -m repo_memory.backfill_git --repo
 - `scripts/evaluate_retrieval_benchmark.py`: compare baseline trace-only
   retrieval against the proposed trace+policy workflow.
 - `scripts/templates/repo_memory/`: templates copied into the target repo.
+- `scripts/templates/repo_memory/review_changes.py`: inventory changed traces
+  and exact-decision duplicate candidates without editing files.
+- `references/trace-maintenance.md`: reconcile task drafts after review and
+  verify memory before commit.
 - `scripts/templates/repo_memory/shadow_mode.py`: record retrieval diagnostics
   and append a JSONL shadow-mode record.
 - `references/bootstrap-checklist.md`: rollout sequence and validation bar.

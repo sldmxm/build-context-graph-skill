@@ -26,6 +26,8 @@ rsync -a --delete \
   --exclude '.git' \
   --exclude '__pycache__' \
   --exclude 'README.md' \
+  --exclude 'tests' \
+  --exclude '.pytest_cache' \
   ./ /Users/solmax/.codex/skills/build-context-graph/
 ```
 
@@ -89,6 +91,22 @@ python scripts/bootstrap_repo_memory.py --repo-root "$tmpdir"
 )
 rm -rf "$tmpdir"
 ```
+
+## Maintain Traces
+
+After capture or review fixes and before committing a task, inspect its changed
+traces against the final diff:
+
+```bash
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.review_changes
+PYTHONPATH=.agents/context-graph/tools python -m repo_memory.validate
+```
+
+Use `--base <task-start-ref>` for tasks spanning commits. The report identifies
+changed traces, staged-content errors, and exact-decision duplicate candidates.
+It does not edit or stage files. See
+[trace-maintenance.md](references/trace-maintenance.md) for consolidation and
+supersession rules.
 
 ## Release Checklist
 
